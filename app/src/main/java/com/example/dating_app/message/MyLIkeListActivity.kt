@@ -7,11 +7,18 @@ import android.widget.ListView
 import android.widget.Toast
 import com.example.dating_app.R
 import com.example.dating_app.auth.UserDataModel
+import com.example.dating_app.message.fcm.NotiModel
+import com.example.dating_app.message.fcm.PushNotification
+import com.example.dating_app.message.fcm.Retrofitinstance
 import com.example.dating_app.utils.FirebaseAuthUtils
 import com.example.dating_app.utils.FirebaseRef
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.lang.Exception
 
 
 //내가 좋아요한 사람들이 나를 좋아요 한 리스트
@@ -45,24 +52,35 @@ class MyLIkeListActivity : AppCompatActivity() {
         getMyLikeList()
         userListView.setOnItemClickListener { parent, view, position, id ->
             checkMatching(likeUserList[position].uid.toString())
+
+            val notiModel = NotiModel("ㅁㄴㅇㄻㄴㅇㄹ", "ㅁㄴㅇㄻㄴㅇㄻㄴㅇㄻㄴㅇㄹ")
+            val pushModel = PushNotification(notiModel,likeUserList[position].token.toString())
+            Log.d(TAG, likeUserList[position].token.toString())
+            testPush(pushModel)
         }
     }
 
     private fun checkMatching(otherUid: String) {
+
         val postListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                for (dataModel in snapshot.children) {
-                    if (dataModel.children.count() == 0) {
-
-                    } else {
+                if (snapshot.children.count() == 0) {
+                    Log.d(TAG, "datamodel 망함")
+                    Toast.makeText(this@MyLIkeListActivity, "상대가 없습니다.", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    for (dataModel in snapshot.children) {
+                        Log.d(TAG, dataModel.toString())
                         var useruid = dataModel.key.toString()
                         if (useruid.equals(uid)) {
+                            Log.d(TAG, "매칭 상대입니다.")
                             Toast.makeText(this@MyLIkeListActivity, "매칭 상대입니다.", Toast.LENGTH_SHORT)
                                 .show()
                         }
                     }
                 }
             }
+
             override fun onCancelled(error: DatabaseError) {
             }
         }
@@ -106,5 +124,16 @@ class MyLIkeListActivity : AppCompatActivity() {
             }
         }
         FirebaseRef.userInfoRef.addValueEventListener(postListener)
+    }
+
+    //PUSH
+    //pushnotification = token과 notinodel값이 들어잇는 파라미터
+    private fun testPush(notification: PushNotification) = CoroutineScope(Dispatchers.IO).launch {
+        try {
+            Log.w(TAG, "testPush작동")
+            Retrofitinstance.api.postNotification(notification)
+        } catch (e: Exception) {
+            Log.w(TAG, "testPush망함")
+        }
     }
 }

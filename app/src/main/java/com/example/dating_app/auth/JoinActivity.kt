@@ -14,11 +14,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.example.dating_app.MainActivity
 import com.example.dating_app.R
 import com.example.dating_app.utils.FirebaseRef
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.ktx.storage
 import java.io.ByteArrayOutputStream
 
@@ -34,6 +36,7 @@ class JoinActivity : AppCompatActivity() {
     private var gender = ""
     private var city = ""
     private var age = ""
+
 
     lateinit var profileImage: ImageView
 
@@ -76,11 +79,24 @@ class JoinActivity : AppCompatActivity() {
                             // Sign in success, update UI with the signed-in user's information
                             val user = auth.currentUser
                             uid = user?.uid.toString()
-                            val userModel = UserDataModel(
-                                uid, nickname, age, gender, city,
-                            )
-                            FirebaseRef.userInfoRef.child(uid).setValue(userModel)
-                            uploadImage(uid)
+
+                            //Token
+                            FirebaseMessaging.getInstance().token.addOnCompleteListener(
+                                OnCompleteListener { task ->
+                                    if (!task.isSuccessful) {
+
+                                        return@OnCompleteListener
+                                    }
+                                    val token = task.result
+                                    val userModel = UserDataModel(
+                                        uid, nickname, age, gender, city, token
+                                    )
+                                    FirebaseRef.userInfoRef.child(uid).setValue(userModel)
+                                    uploadImage(uid)
+                                    // Get new FCM registration token
+
+                                })
+
 
                             val intent = Intent(this, MainActivity::class.java)
                             startActivity(intent)
