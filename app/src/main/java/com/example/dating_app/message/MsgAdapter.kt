@@ -9,7 +9,7 @@ import android.widget.TextView
 import com.example.dating_app.R
 import com.example.dating_app.auth.UserDataModel
 
-class ListViewAdapter(val content : Context, val item : MutableList<UserDataModel>) : BaseAdapter() {
+class MsgAdapter (val content : Context, val item : MutableList<MsgModel>) : BaseAdapter() {
     override fun getCount(): Int {
         return item.size
     }
@@ -27,8 +27,11 @@ class ListViewAdapter(val content : Context, val item : MutableList<UserDataMode
         if (convertView == null){
             convertView = LayoutInflater.from(parent?.context).inflate(R.layout.list_view_item,parent, false)
         }
-        val nickname = convertView!!.findViewById<TextView>(R.id.listviewItemNickname)
+        val nicknameArea = convertView!!.findViewById<TextView>(R.id.listviewItemNicknameArea)
+        val textArea = convertView!!.findViewById<TextView>(R.id.listviewItemNickname)
 //        nickname.text = item[position].nickname
+        nicknameArea.text = item[position].senderInfo
+        textArea.text = item[position].sendText
         return convertView!!
     }
 }

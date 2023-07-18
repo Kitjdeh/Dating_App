@@ -22,6 +22,7 @@ import com.example.dating_app.settting.SettingActivity
 import com.example.dating_app.slider.CardStackAdapter
 import com.example.dating_app.utils.FirebaseAuthUtils
 import com.example.dating_app.utils.FirebaseRef
+import com.example.dating_app.utils.MyInfo
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -130,10 +131,9 @@ class MainActivity : AppCompatActivity() {
                 val data = snapshot.getValue(UserDataModel::class.java)
 
                 currentUserGender = data?.gender.toString()
+                MyInfo.myNickname = data?.nickname.toString()
                 getUserDataList(currentUserGender)
-
             }
-
             override fun onCancelled(error: DatabaseError) {
                 TODO("Not yet implemented")
             }

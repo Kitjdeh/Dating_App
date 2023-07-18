@@ -3,8 +3,12 @@ package com.example.dating_app.message
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ListView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.example.dating_app.R
 import com.example.dating_app.auth.UserDataModel
 import com.example.dating_app.message.fcm.NotiModel
@@ -12,6 +16,7 @@ import com.example.dating_app.message.fcm.PushNotification
 import com.example.dating_app.message.fcm.Retrofitinstance
 import com.example.dating_app.utils.FirebaseAuthUtils
 import com.example.dating_app.utils.FirebaseRef
+import com.example.dating_app.utils.MyInfo
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.ValueEventListener
@@ -33,6 +38,8 @@ class MyLIkeListActivity : AppCompatActivity() {
 
     lateinit var listviewAdapter: ListViewAdapter
 
+    lateinit var getteruid: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_my_like_list)
@@ -50,14 +57,29 @@ class MyLIkeListActivity : AppCompatActivity() {
         //2. 내가 좋아요한 사람들
         // 나를 좋아요한 사람의 리스트를 받아와야 한다
         getMyLikeList()
-        userListView.setOnItemClickListener { parent, view, position, id ->
-            checkMatching(likeUserList[position].uid.toString())
 
-            val notiModel = NotiModel("ㅁㄴㅇㄻㄴㅇㄹ", "ㅁㄴㅇㄻㄴㅇㄻㄴㅇㄻㄴㅇㄹ")
-            val pushModel = PushNotification(notiModel,likeUserList[position].token.toString())
-            Log.d(TAG, likeUserList[position].token.toString())
-            testPush(pushModel)
+
+//        userListView.setOnItemClickListener { parent, view, position, id ->
+//            checkMatching(likeUserList[position].uid.toString())
+//
+//            val notiModel = NotiModel("ㅁㄴㅇㄻㄴㅇㄹ", "ㅁㄴㅇㄻㄴㅇㄻㄴㅇㄻㄴㅇㄹ")
+//            val pushModel = PushNotification(notiModel,likeUserList[position].token.toString())
+//            Log.d(TAG, likeUserList[position].token.toString())
+//            testPush(pushModel)
+//        }
+        //내가 좋아요한 유저를 클릭하면
+        userListView.setOnItemLongClickListener { parent, view, position, id ->
+
+            checkMatching(likeUserList[position].uid.toString())
+            getteruid = likeUserList[position].uid.toString()
+            showDialog()
+
+            return@setOnItemLongClickListener (true)
         }
+
+        //메세지 보내기 창이 떠서 메세지를 보낼 수 있께 하기
+        //메세지 보내고 상대방에게 PUSH 알람 띄워주기
+        //서로 좋아요한 사람이 아니면 메세지 보내기 불가능하게 함
     }
 
     private fun checkMatching(otherUid: String) {
@@ -76,6 +98,8 @@ class MyLIkeListActivity : AppCompatActivity() {
                             Log.d(TAG, "매칭 상대입니다.")
                             Toast.makeText(this@MyLIkeListActivity, "매칭 상대입니다.", Toast.LENGTH_SHORT)
                                 .show()
+                            //Dialog
+
                         }
                     }
                 }
@@ -135,5 +159,28 @@ class MyLIkeListActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.w(TAG, "testPush망함")
         }
+    }
+
+
+    //Dialog
+    private fun showDialog() {
+        val mDialogView = LayoutInflater.from(this).inflate(R.layout.custom_dialog, null)
+        val mBuilder = AlertDialog.Builder(this)
+            .setView(mDialogView)
+            .setTitle("메세지보내기")
+        val mAlertDialog = mBuilder.show()
+        val sendBtn = mAlertDialog.findViewById<Button>(R.id.sendBtnArea)
+        val textArea = mAlertDialog.findViewById<EditText>(R.id.sendTextArea)
+        sendBtn?.setOnClickListener {
+            //메세지 model 해둔거 선언
+            val msgModel = MsgModel(MyInfo.myNickname,textArea!!.text.toString())
+            FirebaseRef.userMsgRef.child(getteruid).push().setValue(msgModel)
+            //Dialog 종료
+            mAlertDialog.dismiss()
+        }
+        // message
+        // 받는 사람 uid
+        //message
+        //보낸사람
     }
 }
