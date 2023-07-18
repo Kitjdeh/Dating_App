@@ -8,7 +8,7 @@ Firebase를 활용한 데이터저장/불러오기, 이미지 저장/불러오�
 FCM(Firebase Cloud Messaging)을 통한 푸시 메세지 전송
 
 card-stack-view를 통한 매칭 
-![image](./src/cardview.jpg)
+![image](./src/cardview.gif)
 
 FCM(Firebase Cloud Messaging)을 통한 푸시 메세지 전송
 
